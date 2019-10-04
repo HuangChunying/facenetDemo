@@ -40,10 +40,10 @@ from tensorflow.python.platform import gfile
 
 
         
-def loadImage(dictInfo): 
+def loadImage(dictInfo,pnet, rnet, onet): 
         
     image_files_list= dictInfo["image_files"]
-    img_list = load_and_align_data(dictInfo["image_files"], dictInfo["image_size"], dictInfo["margin"], dictInfo["gpu_memory_fraction"])
+    img_list = load_and_align_data(dictInfo["image_files"], dictInfo["image_size"], dictInfo["margin"], dictInfo["gpu_memory_fraction"],pnet, rnet, onet)
         
     images = np.stack(img_list)
     
@@ -55,18 +55,18 @@ def loadImage(dictInfo):
             # Run forward pass to calculate embeddings
       
             
-def load_and_align_data(image_paths, image_size, margin, gpu_memory_fraction):
+def load_and_align_data(image_paths, image_size, margin, gpu_memory_fraction,pnet, rnet, onet):
 
     minsize = 20 # minimum size of face
     threshold = [ 0.6, 0.7, 0.7 ]  # three steps's threshold
     factor = 0.709 # scale factor
     
-    print('Creating networks and loading parameters')
-    with tf.Graph().as_default():
-        gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=gpu_memory_fraction)
-        sess = tf.Session(config=tf.ConfigProto(gpu_options=gpu_options, log_device_placement=False))
-        with sess.as_default():
-            pnet, rnet, onet = align.detect_face.create_mtcnn(sess, None)
+#    print('Creating networks and loading parameters')
+#    with tf.Graph().as_default():
+#        gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=gpu_memory_fraction)
+#        sess = tf.Session(config=tf.ConfigProto(gpu_options=gpu_options, log_device_placement=False))
+#        with sess.as_default():
+#            pnet, rnet, onet = align.detect_face.create_mtcnn(sess, None)
   
     tmp_image_paths=copy.copy(image_paths)
     img_list = []

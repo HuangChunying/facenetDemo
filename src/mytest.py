@@ -12,6 +12,7 @@ import loadImage
 import tensorflow as tf
 import numpy as np
 import time
+import align.detect_face
 
 import facenet
 
@@ -22,22 +23,28 @@ def main():
             print ("%s: %s" % ("loading:", time.ctime(time.time())))    
             
             facenet.load_model("../../model/20180402-114759/20180402-114759.pb")
+            
             images_placeholder = tf.get_default_graph().get_tensor_by_name("input:0")
             embeddings = tf.get_default_graph().get_tensor_by_name("embeddings:0")
-            phase_train_placeholder = tf.get_default_graph().get_tensor_by_name("phase_train:0")                
+            phase_train_placeholder = tf.get_default_graph().get_tensor_by_name("phase_train:0")       
             
             
-            dict_0=InputPara(parse_arguments(" "),first)
-                    
-            dict_loadImage_0=loadImage.loadImage(dict_0)
+            
+            gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=1.0)
+            sess_facenet = tf.Session(config=tf.ConfigProto(gpu_options=gpu_options, log_device_placement=False))
+            with sess_facenet.as_default():
+                pnet, rnet, onet = align.detect_face.create_mtcnn(sess_facenet, None)
+            
+            
+            dict_0=InputPara(parse_arguments(" "),first)                  
+            dict_loadImage_0=loadImage.loadImage(dict_0,pnet, rnet, onet)
             feed_dict_0 = { images_placeholder: dict_loadImage_0["images"], phase_train_placeholder:False }
             dict_loadImage_0["embeddings"]=embeddings
             dict_loadImage_0["feed_dict"]=feed_dict_0   
             emb_0 = sess.run(dict_loadImage_0["embeddings"], dict_loadImage_0["feed_dict"])  
             
             first=False
-            
-            
+
             # Get input and output tensors
                     
             
@@ -50,7 +57,7 @@ def main():
                     
                     dict_1=InputPara(parse_arguments(mainImage),first)   
                     
-                    dict_loadImage=loadImage.loadImage(dict_1)
+                    dict_loadImage=loadImage.loadImage(dict_1,pnet, rnet, onet)
 
                     
                     feed_dict = { images_placeholder: dict_loadImage["images"], phase_train_placeholder:False }
@@ -69,18 +76,17 @@ def main():
                     Alldist.remove(tempmin)
                         #print(Alldist)
                     tempmin2=min(Alldist)
-                    resindex=Alldist.index(tempmin2)
-                        #print(resindex+1)
-                    print(dict_loadImage_0["image_files"][resindex])
-#                    if(not first):
-#                        loadImage.image_files_list.pop()
-#                        loadImage.img_list.pop()
+                    if(tempmin2 < 1):
+                        resindex=Alldist.index(tempmin2)
+                        print(dict_loadImage_0["image_files"][resindex])
+                    else:
+                        print("NO RESULT !!!")
                     
                     os.remove(child)
                     np.delete(emb,-1,axis=0)
                     print ("%s: %s" % ("end", time.ctime(time.time())))
                 else:
-                    time.sleep(5)
+                    time.sleep(1)
                     print ("%s: %s" % ("alive--", time.ctime(time.time())))
             
 
