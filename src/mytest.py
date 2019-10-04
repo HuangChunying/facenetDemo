@@ -20,7 +20,7 @@ def main():
     with tf.Graph().as_default():
         with tf.Session() as sess:
             first = True  
-            print ("%s: %s" % ("loading:", time.ctime(time.time())))    
+            print ("%s: %s" % ("loading model:", time.ctime(time.time())))    
             
             facenet.load_model("../../model/20180402-114759/20180402-114759.pb")
             
@@ -35,24 +35,27 @@ def main():
             with sess_facenet.as_default():
                 pnet, rnet, onet = align.detect_face.create_mtcnn(sess_facenet, None)
             
-            
+            print ("%s: %s" % ("loading image hub:", time.ctime(time.time())))    
             dict_0=InputPara(parse_arguments(" "),first)                  
             dict_loadImage_0=loadImage.loadImage(dict_0,pnet, rnet, onet)
+            
             feed_dict_0 = { images_placeholder: dict_loadImage_0["images"], phase_train_placeholder:False }
             dict_loadImage_0["embeddings"]=embeddings
             dict_loadImage_0["feed_dict"]=feed_dict_0   
+            print ("%s: %s" % ("compute image emb:", time.ctime(time.time())))    
             emb_0 = sess.run(dict_loadImage_0["embeddings"], dict_loadImage_0["feed_dict"])  
             
             first=False
 
             # Get input and output tensors
-                    
             
             print ("%s: %s" % ("start:", time.ctime(time.time()))) 
             while True:                
-                temppathDir =  os.listdir("../tempImage")
-                if(len(temppathDir)>0):            
-                    child = os.path.join('%s%s%s' % ("../tempImage","/", temppathDir[0]))
+                #temppathDir =  os.listdir("../tempImage")
+                filepath_1='../tempImage'
+                allFileName_1 = file.eachFile(filepath_1)
+                if(len(allFileName_1)>0):            
+                    child = allFileName_1[0]
                     mainImage=[child]
                     
                     dict_1=InputPara(parse_arguments(mainImage),first)   
@@ -86,7 +89,7 @@ def main():
                     np.delete(emb,-1,axis=0)
                     print ("%s: %s" % ("end", time.ctime(time.time())))
                 else:
-                    time.sleep(1)
+                    time.sleep(5)
                     print ("%s: %s" % ("alive--", time.ctime(time.time())))
             
 
@@ -97,7 +100,10 @@ def InputPara(args,first):
         allFileName = file.eachFile(filepath)
         args.image_files=[];
         for x in allFileName: 
-             args.image_files.append(x)
+            if(os.path.getsize(x) < 10):
+                print("image is too small ", x)
+                continue
+            args.image_files.append(x)
         
     args.model="../../model/20180402-114759/20180402-114759.pb"
         

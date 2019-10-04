@@ -70,7 +70,11 @@ def load_and_align_data(image_paths, image_size, margin, gpu_memory_fraction,pne
   
     tmp_image_paths=copy.copy(image_paths)
     img_list = []
+    number_img = len(tmp_image_paths)
+    curNum = 0
     for image in tmp_image_paths:
+        curNum +=1
+        
         img = misc.imread(os.path.expanduser(image), mode='RGB')
         img_size = np.asarray(img.shape)[0:2]
         bounding_boxes, _ = align.detect_face.detect_face(img, minsize, pnet, rnet, onet, threshold, factor)
@@ -88,6 +92,8 @@ def load_and_align_data(image_paths, image_size, margin, gpu_memory_fraction,pne
         aligned = misc.imresize(cropped, (image_size, image_size), interp='bilinear')
         prewhitened = facenet.prewhiten(aligned)
         img_list.append(prewhitened)
+        if(curNum % 50 == 0):        
+            print("current loading",curNum,"of",number_img)
     #images = np.stack(img_list)
     #return images
     return img_list
