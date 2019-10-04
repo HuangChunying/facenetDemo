@@ -35,33 +35,10 @@ import copy
 import argparse
 import facenet
 import align.detect_face
+from tensorflow.python.platform import gfile
 
 
-img_list=["111"]
-image_files_list=["22"]
 
-def loadModel(dict_loadImage):
-    facenet.load_model(dict_loadImage["model"])
-
-def main(dict_loadImage,first):
-    
-    #with tf.Graph().as_default():
-            # Load the model
-    #if(first):
-        
-    facenet.load_model(dict_loadImage["model"])
-            
-            # Get input and output tensors
-    images_placeholder = tf.get_default_graph().get_tensor_by_name("input:0")
-    embeddings = tf.get_default_graph().get_tensor_by_name("embeddings:0")
-    phase_train_placeholder = tf.get_default_graph().get_tensor_by_name("phase_train:0")
-            
-       # images = load_and_align_data(image_files, image_size, margin, gpu_memory_fraction)
-            # Run forward pass to calculate embeddings
-    feed_dict = { images_placeholder: dict_loadImage["images"], phase_train_placeholder:False }
-    dict_loadImage["embeddings"]=embeddings
-    dict_loadImage["feed_dict"]=feed_dict
-    return dict_loadImage
         
 def loadImage(dictInfo,first): 
     global img_list
@@ -71,14 +48,15 @@ def loadImage(dictInfo,first):
         img_list = load_and_align_data(dictInfo["image_files"], dictInfo["image_size"], dictInfo["margin"], dictInfo["gpu_memory_fraction"])
     else:
         img_list_one = load_and_align_data(dictInfo["image_files"], dictInfo["image_size"], dictInfo["margin"], dictInfo["gpu_memory_fraction"])
-        img_list[0]=img_list_one[0]
-        image_files_list[0]=dictInfo["image_files"]
+        img_list.append(img_list_one[0])
+        image_files_list.append(dictInfo["image_files"][0])
         
     images = np.stack(img_list)
     
     dictInfo["image_files"]=image_files_list
     dictInfo["images"]=images
     dictInfo["image_files_list"]=image_files_list
+    
     return dictInfo
             # Run forward pass to calculate embeddings
       
