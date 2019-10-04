@@ -40,16 +40,10 @@ from tensorflow.python.platform import gfile
 
 
         
-def loadImage(dictInfo,first): 
-    global img_list
-    global image_files_list
-    if(first):
-        image_files_list= dictInfo["image_files"]
-        img_list = load_and_align_data(dictInfo["image_files"], dictInfo["image_size"], dictInfo["margin"], dictInfo["gpu_memory_fraction"])
-    else:
-        img_list_one = load_and_align_data(dictInfo["image_files"], dictInfo["image_size"], dictInfo["margin"], dictInfo["gpu_memory_fraction"])
-        img_list.append(img_list_one[0])
-        image_files_list.append(dictInfo["image_files"][0])
+def loadImage(dictInfo): 
+        
+    image_files_list= dictInfo["image_files"]
+    img_list = load_and_align_data(dictInfo["image_files"], dictInfo["image_size"], dictInfo["margin"], dictInfo["gpu_memory_fraction"])
         
     images = np.stack(img_list)
     

@@ -21,17 +21,25 @@ def main():
             first = True  
             print ("%s: %s" % ("loading:", time.ctime(time.time())))    
             
+            facenet.load_model("../../model/20180402-114759/20180402-114759.pb")
+            images_placeholder = tf.get_default_graph().get_tensor_by_name("input:0")
+            embeddings = tf.get_default_graph().get_tensor_by_name("embeddings:0")
+            phase_train_placeholder = tf.get_default_graph().get_tensor_by_name("phase_train:0")                
+            
             
             dict_0=InputPara(parse_arguments(" "),first)
                     
-            loadImage.loadImage(dict_0,first)
+            dict_loadImage_0=loadImage.loadImage(dict_0)
+            feed_dict_0 = { images_placeholder: dict_loadImage_0["images"], phase_train_placeholder:False }
+            dict_loadImage_0["embeddings"]=embeddings
+            dict_loadImage_0["feed_dict"]=feed_dict_0   
+            emb_0 = sess.run(dict_loadImage_0["embeddings"], dict_loadImage_0["feed_dict"])  
+            
             first=False
-            facenet.load_model("../../model/20180402-114759/20180402-114759.pb")
+            
             
             # Get input and output tensors
-            images_placeholder = tf.get_default_graph().get_tensor_by_name("input:0")
-            embeddings = tf.get_default_graph().get_tensor_by_name("embeddings:0")
-            phase_train_placeholder = tf.get_default_graph().get_tensor_by_name("phase_train:0")            
+                    
             
             print ("%s: %s" % ("start:", time.ctime(time.time()))) 
             while True:                
@@ -40,16 +48,19 @@ def main():
                     child = os.path.join('%s%s%s' % ("../tempImage","/", temppathDir[0]))
                     mainImage=[child]
                     
-                    dict_1=InputPara(parse_arguments(mainImage),first)                  
-                    dict_loadImage=loadImage.loadImage(dict_1,first)
+                    dict_1=InputPara(parse_arguments(mainImage),first)   
+                    
+                    dict_loadImage=loadImage.loadImage(dict_1)
 
                     
                     feed_dict = { images_placeholder: dict_loadImage["images"], phase_train_placeholder:False }
                     dict_loadImage["embeddings"]=embeddings
                     dict_loadImage["feed_dict"]=feed_dict
                     
-                    emb = sess.run(dict_loadImage["embeddings"], dict_loadImage["feed_dict"])          
-                    nrof_images = len(dict_loadImage["image_files"])
+                    emb = sess.run(dict_loadImage["embeddings"], dict_loadImage["feed_dict"])  
+                    emb = np.append(emb_0,emb,axis=0)
+                    
+                    nrof_images = len(dict_loadImage["image_files"])+len(dict_loadImage_0["image_files"])
                     Alldist=[]
                     for j in range(nrof_images):
                         dist = np.sqrt(np.sum(np.square(np.subtract(emb[-1,:], emb[j,:]))))
@@ -60,12 +71,13 @@ def main():
                     tempmin2=min(Alldist)
                     resindex=Alldist.index(tempmin2)
                         #print(resindex+1)
-                    print(dict_loadImage["image_files"][resindex])
-                    if(not first):
-                        loadImage.image_files_list.pop()
-                        loadImage.img_list.pop()
+                    print(dict_loadImage_0["image_files"][resindex])
+#                    if(not first):
+#                        loadImage.image_files_list.pop()
+#                        loadImage.img_list.pop()
                     
                     os.remove(child)
+                    np.delete(emb,-1,axis=0)
                     print ("%s: %s" % ("end", time.ctime(time.time())))
                 else:
                     time.sleep(5)
