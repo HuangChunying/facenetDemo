@@ -1,4 +1,0 @@
-/home/train/git-workspace/facenetDemo/facenet/src/align/output/00001吴荣南/123_0.png 1123 346 1312 574
-/home/train/git-workspace/facenetDemo/facenet/src/align/output/00001吴荣南/123_1.png 15 193 384 654
-/home/train/git-workspace/facenetDemo/facenet/src/align/output/00001吴荣南/123_2.png 883 459 1058 689
-/home/train/git-workspace/facenetDemo/facenet/src/align/output/00001吴荣南/123_3.png 563 318 787 604

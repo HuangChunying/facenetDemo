@@ -4,12 +4,28 @@ Created on Fri Oct  4 21:34:30 2019
 
 @author: train
 """
+import cv2
+import numpy
+from PIL import Image, ImageDraw, ImageFont
 
-import facenet
-def main():
-    dataset = facenet.get_dataset("./input")
-    print (dataset)
+ 
+def cv2ImgAddText(img, text, left, top, textColor=(0, 255, 0), textSize=20):
+    if (isinstance(img, numpy.ndarray)):  # 判断是否OpenCV图片类型
+        img = Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+    # 创建一个可以在给定图像上绘图的对象
+    draw = ImageDraw.Draw(img)
+    # 字体的格式
+    fontStyle = ImageFont.truetype(
+        "simhei.ttf", textSize, encoding="utf-8")
+    # 绘制文本
+    draw.text((left, top), text, textColor, font=fontStyle)
+    # 转换回OpenCV格式
+    return cv2.cvtColor(numpy.asarray(img), cv2.COLOR_RGB2BGR)
+
 
 if __name__ == '__main__':
-    main()
- 
+    img = cv2ImgAddText(cv2.imread('1.jpeg'), "大家好，我是片天边的云彩", 10, 65, (0, 0 , 139), 20)
+    cv2.imshow('show', img)
+    if cv2.waitKey(100000) & 0xFF == ord('q'):
+        cv2.destroyAllWindows() 
+
