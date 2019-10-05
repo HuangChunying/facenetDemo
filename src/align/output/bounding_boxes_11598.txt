@@ -1,2 +1,0 @@
-/home/train/git-workspace/facenetDemo/facenet/src/align/output/00001吴荣南/00001吴荣南.png 232 212 641 752
-/home/train/git-workspace/facenetDemo/facenet/src/align/output/00003陈国良/00003陈国良.png 259 160 634 676

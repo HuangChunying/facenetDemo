@@ -48,7 +48,7 @@ def main(args):
         ret,frame = cap.read()
         img = frame
         img = img[:,:,0:3]
-        faceImg = np.zeros(4, dtype=np.int32)
+        
         bounding_boxes, _ = align.detect_face.detect_face(img, minsize, pnet, rnet, onet, threshold, factor)
         
         nrof_faces = bounding_boxes.shape[0]
@@ -70,18 +70,16 @@ def main(args):
             else:
                 det_arr.append(np.squeeze(det))
             
+            bb = np.zeros((nrof_faces,4),dtype=np.int32)
             for i, det in enumerate(det_arr):
-                det = np.squeeze(det)
-                bb = np.zeros(4, dtype=np.int32)
-                bb[0] = np.maximum(det[0]-args.margin/2, 0)
-                bb[1] = np.maximum(det[1]-args.margin/2, 0)
-                bb[2] = np.minimum(det[2]+args.margin/2, img_size[1])
-                bb[3] = np.minimum(det[3]+args.margin/2, img_size[0])
-                cropped = img[bb[1]:bb[3],bb[0]:bb[2],:]
-                faceImg = bb
-     
-        cv2.rectangle(frame, (faceImg[0], faceImg[1]), (faceImg[2],faceImg[3]), (0, 255, 0), 2) 
-        #cv2.rectangle(frame, (20, 20), (100,100), (0, 255, 0), 2) 
+                det = np.squeeze(det)               
+                bb[i][0] = np.maximum(det[0]-args.margin/2, 0)
+                bb[i][1] = np.maximum(det[1]-args.margin/2, 0)
+                bb[i][2] = np.minimum(det[2]+args.margin/2, img_size[1])
+                bb[i][3] = np.minimum(det[3]+args.margin/2, img_size[0])
+                cv2.rectangle(frame, (bb[i][0], bb[i][1]), (bb[i][2],bb[i][3]), (0, 255, 0), 2)
+                cv2.putText(frame, "No Body", (bb[i][0],bb[i][1]), cv2.FONT_HERSHEY_COMPLEX, 1, (0,255,0), 2)                
+#           
         cv2.imshow("Video",frame)
         c = cv2.waitKey(1)
 
@@ -102,7 +100,7 @@ def parse_arguments(argv):
     parser.add_argument('--gpu_memory_fraction', type=float,
         help='Upper bound on the amount of GPU memory that will be used by the process.', default=1.0)
     parser.add_argument('--detect_multiple_faces', type=bool,
-                        help='Detect and align multiple faces per image.', default=False)
+                        help='Detect and align multiple faces per image.', default=True)
     return parser.parse_args(argv)
 
 if __name__ == '__main__':
