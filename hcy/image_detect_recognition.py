@@ -4,7 +4,8 @@ Created on Thu Oct  3 10:26:58 2019
 
 @author: train
 """
-
+#从../tempImage　加载图片并　检测人脸　然后识别　识别后删除
+#
 import argparse
 import os
 import file
@@ -37,7 +38,7 @@ def main():
             
             print ("%s: %s" % ("loading image hub:", time.ctime(time.time())))    
             dict_0=InputPara(parse_arguments(" "),first)                  
-            dict_loadImage_0=loadImage.loadImage(dict_0,pnet, rnet, onet)
+            dict_loadImage_0=loadImage.loadImage_detectFace(dict_0,pnet, rnet, onet)
             
             feed_dict_0 = { images_placeholder: dict_loadImage_0["images"], phase_train_placeholder:False }
             dict_loadImage_0["embeddings"]=embeddings
@@ -52,7 +53,7 @@ def main():
             print ("%s: %s" % ("start:", time.ctime(time.time()))) 
             while True:                
                 #temppathDir =  os.listdir("../tempImage")
-                filepath_1='../tempImage'
+                filepath_1='./tempImage'
                 allFileName_1 = file.eachFile(filepath_1)
                 if(len(allFileName_1)>0):            
                     child = allFileName_1[0]
@@ -60,7 +61,7 @@ def main():
                     
                     dict_1=InputPara(parse_arguments(mainImage),first)   
                     
-                    dict_loadImage=loadImage.loadImage(dict_1,pnet, rnet, onet)
+                    dict_loadImage=loadImage.loadImage_detectFace(dict_1,pnet, rnet, onet)
 
                     
                     feed_dict = { images_placeholder: dict_loadImage["images"], phase_train_placeholder:False }
@@ -96,7 +97,7 @@ def main():
 
 def InputPara(args,first): 
     if (first):     
-        filepath='../emp'
+        filepath='./emp'
         allFileName = file.eachFile(filepath)
         args.image_files=[];
         for x in allFileName: 

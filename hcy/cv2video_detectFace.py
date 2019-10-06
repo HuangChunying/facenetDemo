@@ -13,21 +13,17 @@ from __future__ import print_function
 
 
 import sys
-import os
 import argparse
 import tensorflow as tf
 import numpy as np
-import facenet
 import align.detect_face
-import random
-import time 
 import cv2
-from scipy import misc
 
 
 
 
 
+# 从摄像头读取视频流　并检测人脸(可设置单个脸检测)
 def main(args):
     with tf.Graph().as_default():
         gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=args.gpu_memory_fraction)
@@ -38,7 +34,7 @@ def main(args):
     minsize = 20 # minimum size of face
     threshold = [ 0.6, 0.7, 0.7 ]  # three steps's threshold
     factor = 0.709 # scale factor
-    print("+++++")
+    
     cap = cv2.VideoCapture(0)
     size = (int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)), 
         int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))) 

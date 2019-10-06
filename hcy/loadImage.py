@@ -1,56 +1,31 @@
-"""Performs face alignment and calculates L2 distance between the embeddings of images."""
+# -*- coding: utf-8 -*-
+"""
+Created on Thu Oct  3 10:26:58 2019
 
-# MIT License
-# 
-# Copyright (c) 2016 David Sandberg
-# 
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-# 
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-# 
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
+@author: train
+"""
 
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
 from scipy import misc
-import tensorflow as tf
 import numpy as np
-import sys
 import os
 import copy
-import argparse
 import facenet
 import align.detect_face
-from tensorflow.python.platform import gfile
 
 
 
+
+ # 检测图片中的人脸　返回人脸所在矩形区域       
+def loadImage_detectFace(dictInfo,pnet, rnet, onet): 
         
-def loadImage(dictInfo,pnet, rnet, onet): 
-        
-    image_files_list= dictInfo["image_files"]
-    img_list = load_and_align_data(dictInfo["image_files"], dictInfo["image_size"], dictInfo["margin"], dictInfo["gpu_memory_fraction"],pnet, rnet, onet)
-        
+
+    img_list = load_and_align_data(dictInfo["image_files"], dictInfo["image_size"], dictInfo["margin"], dictInfo["gpu_memory_fraction"],pnet, rnet, onet)        
     images = np.stack(img_list)
-    
-    dictInfo["image_files"]=image_files_list
-    dictInfo["images"]=images
-    dictInfo["image_files_list"]=image_files_list
-    
+    dictInfo["images"]=images    
     return dictInfo
             # Run forward pass to calculate embeddings
       

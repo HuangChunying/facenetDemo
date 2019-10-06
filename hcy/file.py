@@ -34,6 +34,6 @@ def eachFile(path):
     return all
 
 if __name__ == "__main__":
-    b = eachFile('../tempImage')
+    b = eachFile('./emp')
     for i in b:
         print (i)

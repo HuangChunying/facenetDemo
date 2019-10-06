@@ -16,7 +16,7 @@ def cv2ImgAddText(img, text, left, top, textColor=(0, 255, 0), textSize=20):
     draw = ImageDraw.Draw(img)
     # 字体的格式
     fontStyle = ImageFont.truetype(
-        "simhei.ttf", textSize, encoding="utf-8")
+        "./font/simhei.ttf", textSize, encoding="utf-8")
     # 绘制文本
     draw.text((left, top), text, textColor, font=fontStyle)
     # 转换回OpenCV格式
@@ -24,7 +24,7 @@ def cv2ImgAddText(img, text, left, top, textColor=(0, 255, 0), textSize=20):
 
 
 if __name__ == '__main__':
-    img = cv2ImgAddText(cv2.imread('1.jpeg'), "大家好，我是片天边的云彩", 10, 65, (0, 0 , 139), 20)
+    img = cv2ImgAddText(cv2.imread('./testImage/1.jpeg'), "大家好，我是片天边的云彩", 10, 65, (0, 0 , 139), 20)
     cv2.imshow('show', img)
     if cv2.waitKey(100000) & 0xFF == ord('q'):
         cv2.destroyAllWindows() 

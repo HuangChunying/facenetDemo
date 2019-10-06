@@ -18,12 +18,14 @@ from PIL import Image, ImageDraw, ImageFont
 
 import facenet
 
+# 整合　ｍｙtest.py  cv2demo.py 实现摄像头人脸识别
+
 def main():
     with tf.Graph().as_default():
         with tf.Session() as sess:
-            first = True  
-            print ("%s: %s" % ("loading model:", time.ctime(time.time())))    
             
+             #载入计算embedding的模型和网络  
+            print ("%s: %s" % ("loading model", time.ctime(time.time())))               
             facenet.load_model("../../model/20180402-114759/20180402-114759.pb")
             
             images_placeholder = tf.get_default_graph().get_tensor_by_name("input:0")
@@ -31,42 +33,48 @@ def main():
             phase_train_placeholder = tf.get_default_graph().get_tensor_by_name("phase_train:0")       
             
             
-            
+             #载入人脸检测模型和参数  
             gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=1.0)
             sess_facenet = tf.Session(config=tf.ConfigProto(gpu_options=gpu_options, log_device_placement=False))
             with sess_facenet.as_default():
                 pnet, rnet, onet = align.detect_face.create_mtcnn(sess_facenet, None)
             
+            #载入参数　空：　读取图片库中的所有图片，并检测到人脸区域
             print ("%s: %s" % ("loading image hub:", time.ctime(time.time())))    
-            dict_0=InputPara(parse_arguments(" "),first)                  
-            dict_loadImage_0=loadImage.loadImage(dict_0,pnet, rnet, onet)
+            dict_0=InputPara(parse_arguments(" "))                  
+            dict_loadImage_0=loadImage.loadImage_detectFace(dict_0,pnet, rnet, onet)
             
+            # 计算　所有图片的embedding
             feed_dict_0 = { images_placeholder: dict_loadImage_0["images"], phase_train_placeholder:False }
             dict_loadImage_0["embeddings"]=embeddings
             dict_loadImage_0["feed_dict"]=feed_dict_0   
-            print ("%s: %s" % ("compute image emb:", time.ctime(time.time())))    
+                
             emb_0 = sess.run(dict_loadImage_0["embeddings"], dict_loadImage_0["feed_dict"])  
-            
-            first=False
+                       
 
-            # Get input and output tensors
+            #从待测图片检测人脸的参数 和loadImage.loadImage(dict_0,pnet, rnet, onet)重复
 
             minsize = 20 # minimum size of face
             threshold = [ 0.6, 0.7, 0.7 ]  # three steps's threshold
             factor = 0.709 # scale factor
-            print("+++++")
+            
+            print ("%s: %s" % ("open video", time.ctime(time.time())))
+            #通过cv2读取视频
             cap = cv2.VideoCapture(0)
             size = (int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)), 
                 int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))) 
-            print('size:'+repr(size)) 
+            print('video size:'+repr(size)) 
             
             while True:
+                #获取读到的图片
                 ret,frame = cap.read()
                 img = frame
                 img = img[:,:,0:3]
                 
+                #检测图片中的人脸
                 bounding_boxes, _ = align.detect_face.detect_face(img, minsize, pnet, rnet, onet, threshold, factor)
                 
+                #人脸个数
                 nrof_faces = bounding_boxes.shape[0]
                 if nrof_faces>0:
                     
@@ -88,6 +96,7 @@ def main():
                         det_arr.append(np.squeeze(det))
                     
                     bb = np.zeros((nrof_faces,4),dtype=np.int32)
+                    #对每个人脸处理　得到人脸的矩形边框
                     for i, det in enumerate(det_arr):
                         nameOfImg = "No body"
                         img_list=[]
@@ -102,6 +111,8 @@ def main():
                         prewhitened = facenet.prewhiten(aligned)
                         img_list.append(prewhitened)
                         images = np.stack(img_list) 
+                        
+                        #将人脸（边框内的数据）　准备加载　计算embedding
                         dict_loadImage["images"]=images
                         
                         feed_dict = { images_placeholder: dict_loadImage["images"], phase_train_placeholder:False }
@@ -109,13 +120,19 @@ def main():
                         dict_loadImage["feed_dict"]=feed_dict
                         
                         emb = sess.run(dict_loadImage["embeddings"], dict_loadImage["feed_dict"])  
+                        
+                        #　将图片库和待测图片的　embedding 数据整合到emb
                         emb = np.append(emb_0,emb,axis=0)
                         
+                        #图片总数　＝　１　＋　图片库　
                         nrof_images = len(images)+len(dict_loadImage_0["image_files"])
+                        
+                        #计算欧式距离
                         Alldist=[]
                         for j in range(nrof_images):
                             dist = np.sqrt(np.sum(np.square(np.subtract(emb[-1,:], emb[j,:]))))
                             Alldist.append(dist);
+                        # 找出距离第二小（最小的是０　是本身）的那个数据对应的图库中的图片    
                         tempmin=min(Alldist)
                         Alldist.remove(tempmin)
                             #print(Alldist)
@@ -127,12 +144,12 @@ def main():
                         else:
                             nameOfImg="sos"
                             print("NO RESULT !!!")
-                                            
+                        #将待测的图片数据删除                    
                         np.delete(emb,-1,axis=0)
                         print ("%s: %s" % ("end", time.ctime(time.time())))                       
                         
                         
-                        
+                        #在视频的图片上输出人脸矩形框和文件名
                         cv2.rectangle(frame, (bb[i][0], bb[i][1]), (bb[i][2],bb[i][3]), (0, 255, 0), 2)
                         #cv2.putText(frame, nameOfImg, (bb[i][0],bb[i][1]), cv2.FONT_HERSHEY_COMPLEX, 1, (0,255,0), 2)                
                         frame=cv2ImgAddText(frame, nameOfImg, bb[i][0], bb[i][1], (0,255,0), 20)
@@ -146,16 +163,15 @@ def main():
                         
 
 
-def InputPara(args,first): 
-    if (first):     
-        filepath='../emp'
-        allFileName = file.eachFile(filepath)
-        args.image_files=[];
-        for x in allFileName: 
-            if(os.path.getsize(x) < 10):
-                print("image is too small ", x)
-                continue
-            args.image_files.append(x)
+def InputPara(args):       
+    filepath='./emp'
+    allFileName = file.eachFile(filepath)
+    args.image_files=[];
+    for x in allFileName: 
+        if(os.path.getsize(x) < 10):
+            print("image is too small ", x)
+            continue
+        args.image_files.append(x)
         
     args.model="../../model/20180402-114759/20180402-114759.pb"
         
@@ -169,7 +185,7 @@ def cv2ImgAddText(img, text, left, top, textColor=(0, 255, 0), textSize=20):
     draw = ImageDraw.Draw(img)
     # 字体的格式
     fontStyle = ImageFont.truetype(
-        "simhei.ttf", textSize, encoding="utf-8")
+        "./font/simhei.ttf", textSize, encoding="utf-8")
     # 绘制文本
     draw.text((left, top), text, textColor, font=fontStyle)
     # 转换回OpenCV格式
